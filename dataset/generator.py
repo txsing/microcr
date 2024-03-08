@@ -22,9 +22,14 @@ base_config = {
     'textures_directory': 'tmp/textures',
     'paper_sigma_span': [14, 22],
     'background_distribution': {
-        'paper': 70,
-        'texture': 15,
-        'cyclic': 10
+        # 'paper': 60,
+        # 'texture': 100,
+        # 'cyclic': 40,
+        'blackwhite': 100,
+    },
+    'style': {
+        'blackwhite': 100,
+        'corlor': 0,
     },
     'font_size_span': [25, 32],
     'blur_probability': 0.22,
@@ -33,9 +38,9 @@ base_config = {
 }
 
 
-def make_dataset(config, number_of_samples=10000, force=False):
+def make_dataset(config, number_of_samples=10000, force=False, root_dir=None):
     # Prepare the directories to store images and labels
-    root_dir = config['root_directory']
+    root_dir = config['root_directory'] if root_dir is None else root_dir
 
     if os.path.exists(root_dir) and not force:
         print('Dataset exists, add `force=True` to rebuild!')
@@ -102,9 +107,7 @@ def prepare_directory(root_dir):
 def make_micrst_sample(config):
     img = make_background(config)
     img, ground_truth = draw_character(img, config)
-
     img = introduce_obfuscations(img, config)
-
     return img, ground_truth
 
 
@@ -252,6 +255,8 @@ def make_background(config):
         img = make_texture_background(config)
     if background_type == 'cyclic':
         img = make_cyclic_background(config)
+    if background_type == 'blackwhite':
+        img = make_black_background(config)
 
     return img
 
@@ -277,6 +282,11 @@ def make_texture_background(config):
 
     return img
 
+def make_black_background(config):
+    image = 255 * np.ones([config['width'], config['height']], np.uint8)
+    cut = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+    return cut
 
 def random_crop(img, width, height):
     in_height, in_width, _ = img.shape
@@ -285,6 +295,8 @@ def random_crop(img, width, height):
 
     h_end = h_sta + height
     w_end = w_sta + width
+
+    image = 255 * np.ones([paper_h, paper_w], np.uint8)
 
     img = img[h_sta: h_end, w_sta: w_end, ...]
 
@@ -357,7 +369,8 @@ def make_cyclic_background(config):
             out += np.sin(f * Y)**2
 
     out -= out.min()
-    out /= out.max()
+    if out.max() > 0.0:
+        out /= out.max()
     out = 150 + 105 * out
     out = cv2.cvtColor(out.astype(np.uint8), cv2.COLOR_GRAY2BGR)
 

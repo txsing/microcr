@@ -23,9 +23,8 @@ class MICRSTDataset(Dataset):
         return idx
 
     def __getitem__(self, idx):
-        label = self.char_to_idx(self.df.iloc[idx, 0])
-
-        img_path = self.df.iloc[idx, 1]
+        label = self.char_to_idx(self.df.iloc[idx, 1])
+        img_path = self.df.iloc[idx, 0]
         img = cv2.imread(img_path)
 
         img = img.transpose(2, 0, 1)
