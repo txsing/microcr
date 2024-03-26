@@ -33,4 +33,3 @@ for idx in range(len(df)):
         os.makedirs(tgt_path)
     shutil.copy(f, tgt_path)
 print("Re-organize Done")
-
